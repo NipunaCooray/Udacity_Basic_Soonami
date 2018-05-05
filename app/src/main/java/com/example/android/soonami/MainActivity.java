@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
         // Kick off an {@link AsyncTask} to perform the network request
         TsunamiAsyncTask task = new TsunamiAsyncTask();
         task.execute();
+
+        Log.e(LOG_TAG,"Log working");
     }
 
     /**
@@ -106,14 +108,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Event doInBackground(URL... urls) {
             // Create URL object
-            URL url = createUrl(USGS_REQUEST_URL);
+            URL url = null;
+            try {
+                url = createUrl(USGS_REQUEST_URL);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
 
             // Perform HTTP request to the URL and receive a JSON response back
             String jsonResponse = "";
             try {
                 jsonResponse = makeHttpRequest(url);
             } catch (IOException e) {
-                // TODO Handle the IOException
+                Log.e(LOG_TAG, "Error with HTTP request :"+ e.getMessage());
             }
 
             // Extract relevant fields from the JSON response and create an {@link Event} object
@@ -139,12 +146,12 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Returns new URL object from the given string URL.
          */
-        private URL createUrl(String stringUrl) {
+        private URL createUrl(String stringUrl) throws MalformedURLException {
             URL url = null;
             try {
                 url = new URL(stringUrl);
             } catch (MalformedURLException exception) {
-                Log.e(LOG_TAG, "Error with creating URL", exception);
+                Log.e(LOG_TAG, "Error with creating URL :"+ exception.getMessage());
                 return null;
             }
             return url;
@@ -171,9 +178,13 @@ public class MainActivity extends AppCompatActivity {
                 if(urlConnection.getResponseCode()==200){
                     inputStream = urlConnection.getInputStream();
                     jsonResponse = readFromStream(inputStream);
+                }else{
+                    Log.e(LOG_TAG,"HTTP request error code :"+urlConnection.getResponseMessage());
+
                 }
             } catch (IOException e) {
                 // TODO: Handle the exception
+                Log.e(LOG_TAG, "Error with connection"+ e.getMessage());
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
